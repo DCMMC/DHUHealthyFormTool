@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# added by DCMMC
+user_config.json
+user_config.json*
+DHU_healthy_form.log

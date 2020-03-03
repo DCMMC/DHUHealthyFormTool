@@ -17,6 +17,8 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from email.mime.text import MIMEText
 from email.header import Header
 from smtplib import SMTP_SSL
+import time
+
 
 coloredlogs.install()
 logger = logging.getLogger('DHU healthy form tool')
@@ -38,7 +40,7 @@ submit_url = 'http://fygrtb.dhu.edu.cn/pdc/formDesignApi/dataFormSave'
 # !!! hardcoded app id: 36
 # Refer to http://wserver.dhu.edu.cn/personApp.do?method=list
 healthy_app_url = 'http://wserver.dhu.edu.cn/personApp.do?method=add&appid=36'
-max_try = 3
+max_try = 30
 UA ='Mozilla/5.0 (X11; CrOS x86_64 12105.100.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.144 Safari/537.36'
 
 
@@ -203,21 +205,23 @@ def submit(username, password, send_mail_instance, *args, **kwargs):
                                mail_content=("It's very sorry to notice you that after {} tries." +
                                              "\nHowever, this tool is still try to submit again with no more than {} tries." +
                                              "\nYou may need submit the healthy form manully.").format(try_cnt, max_try))
-            raise e
-            # APScheduler will auto rerty this job that raised exception
-            # time.sleep(10)
-            # submit(username, password, send_mail_instance, try_cnt=try_cnt)
+            time.sleep(60)
+            submit(username, password, send_mail_instance, try_cnt=try_cnt)
 
 
 def check_config(conf):
     logger.debug('start checking config')
     assert 'users' in conf
     assert len(conf['users']) >= 1
-    assert all([all([user.get('username'), user.get('password'),
-                     user.get('hour'), user.get('minute')]) for user in conf['users']])
+    assert all([all([user.get('username'),
+                     user.get('password')]) for user in conf['users']])
     if any([user.get('receiver_mail') for user in conf['users']]):
         assert conf.get('sender_qq') and conf.get('qq_auth_code')
-    # assert 0 <= user.get('hour') < 9
+    for user in conf['users']:
+        if not 0 <= user.get('hour') < 9:
+            logger.warnning('The push time must between 00:00 to 8:59!')
+        assert 0 <= user.get('hour', -1) <= 23
+        assert 0 <= user.get('minute', -1) <= 59
     logger.debug('the config is valid')
 
 
@@ -268,7 +272,7 @@ if __name__ == '__main__':
             send_mail_instances.append(None)
 
         try:
-            hour, minute = [int(i) for i in input('Push time (e.g. 0:10 or 8:30):').split(':')]
+            hour, minute = [int(i) for i in input('Push time (e.g. 0:10 or 8:30) 0:0 ~ 23:59:').split(':')]
             conf = {'users': [{'username': username, 'password': password, 'hour': hour,
                               'minute': minute, 'receiver_mail': receiver}], 'sender_qq': qq, 'qq_auth_code': auth_code}
             check_config(conf)
@@ -287,12 +291,18 @@ if __name__ == '__main__':
     # retry after 20s when job raised exceptions
     # Refer to https://www.cnblogs.com/quijote/p/4385774.html
     scheduler = BlockingScheduler(jobstore_retry_interval=20, job_defaults={
-        'coalesce': True, 'max_instances': 1, 'misfire_grace_time': 60 * 60 * 9
+        'coalesce': True, 'max_instances': len(conf['users']) * 2, 'misfire_grace_time': 60 * 60 * 9
     })
     for i, user in enumerate(conf['users']):
         scheduler.add_job(submit, 'cron', kwargs={'username': user['username'],
                                                   'password': user['password'],
                                                   'send_mail_instance': send_mail_instances[i]
                                                   }, hour=user['hour'], minute=user['minute'])
+        scheduler.add_job(submit, 'cron', kwargs={'username': user['username'],
+                                                  'password': user['password'],
+                                                  'send_mail_instance': send_mail_instances[i]
+                                                  },
+                          hour=user['hour'] + ((user['minute'] + 5) // 60),
+                          minute=((user['minute'] + 5) % 60))
     # blocking mode, i.e. infinite loop
     scheduler.start()

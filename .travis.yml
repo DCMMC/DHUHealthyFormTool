@@ -5,7 +5,7 @@ jobs:
     - os: osx
 
   inlcude:
-    - stage macOS build
+    - stage: macOS build
       os: osx
       osx_image: xcode11.3
       language: sh
@@ -23,7 +23,7 @@ jobs:
         - python3 -m pip install --upgrade virtualenv
         - virtualenv -p python3 --system-site-packages "$HOME/venv"
         - source "$HOME/venv/bin/activate"
-    - stage Linux build
+    - stage: Linux build
       os: linux
       language: python
       python: 3.8
@@ -36,7 +36,7 @@ jobs:
       env:
         - UPX_PATH="$PWD"/UPX
         - PY=python3
-    - stage Windows build
+    - stage: Windows build
       os: windows
       language: shell
       before_install:

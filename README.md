@@ -4,6 +4,10 @@
 
 A simple and trivial tool used to automatic submit the healthy form to the website for DHU students.
 
+## Have a try!
+
+Double click the executable file that corresponds to your operating system.
+
 ## Note for the author
 
 ```

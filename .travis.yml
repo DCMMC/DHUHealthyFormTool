@@ -61,9 +61,9 @@ deploy:
     - "dist/*.dmg"
     - "dist/*.exe"
     - "dist/DHUHealthyFormTool*"
-  draft: true
+  draft: false
   on:
-    tags: true
+    tags: false
     repo: DCMMC/DHUHealthyFormTool
 
 install:

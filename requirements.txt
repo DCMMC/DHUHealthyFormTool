@@ -1,10 +1,12 @@
 setuptools==44.0.0
+altgraph==0.17
 APScheduler==3.6.3
 certifi==2019.11.28
 chardet==3.0.4
 coloredlogs==14.0
 humanfriendly==8.0
 idna==2.9
+PyInstaller==3.6
 pytz==2019.3
 requests==2.23.0
 six==1.14.0

@@ -1,0 +1,71 @@
+language: python
+
+jobs:
+  allow_failures:
+    - os: osx
+
+  inlcude:
+    - stage macOS build
+      os: osx
+      osx_image: xcode11.3
+      language: sh
+      env:
+        - HOMEBREW_NO_INSTALL_CLEANUP=1
+        - HOMEBREW_NO_ANALYTICS=1
+        - PY=python3
+      before_cache:
+        - rm -vf "$HOME/Library/Caches/pip/log/debug.log"
+      cache:
+        directories:
+          - "$HOME/Library/Caches/pip"
+      before_install:
+        - brew install python3@3.8
+        - python3 -m pip install --upgrade virtualenv
+        - virtualenv -p python3 --system-site-packages "$HOME/venv"
+        - source "$HOME/venv/bin/activate"
+    - stage Linux build
+      os: linux
+      language: python
+      python: 3.8
+      sudo: required
+      before_install:
+        - mkdir UPX && cd UPX && export UPX_PATH=$PWD
+        - curl -sL -o upx.txz https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+        - tar -xvf upx.txz
+        - cd ..
+      env:
+        - UPX_PATH="$PWD"/UPX
+        - PY=python3
+    - stage Windows build
+      os: windows
+      language: shell
+      before_install:
+        - choco install python3 --version 3.8.0
+        - python -m pip install --upgrade pip
+        - mkdir UPX && cd UPX && export UPX_PATH=$PWD
+        - curl https://github.com/upx/upx/releases/download/v3.95/upx-3.95-win64.zip -J -L --output UPX.zip
+        - 7z e -y UPX.zip -o"." upx-3.95-win64\*.exe
+        - cd ..
+      env:
+        - UPX_PATH="$PWD"/UPX
+        - PY=python
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  skip_cleanup: true
+  file_glob: true
+  overwrite: true
+  file:
+    - "dist/*.dmg"
+    - "dist/*.exe"
+  draft: true
+  on:
+    tags: true
+    repo: DCMMC/DHUHealthyFormTool
+
+install:
+  - "$PY -m pip install -r requirements.txt"
+
+script:
+  - "$PY pyinstaller.py"

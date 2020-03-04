@@ -132,4 +132,6 @@ dmypy.json
 # added by DCMMC
 user_config.json
 user_config.json*
+DHUHealthyFormTool*
 DHU_healthy_form.log
+UPX/

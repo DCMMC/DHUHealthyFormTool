@@ -59,6 +59,7 @@ deploy:
   file:
     - "dist/*.dmg"
     - "dist/*.exe"
+    - "dist/DHUHealthyFormTool*"
   draft: true
   on:
     tags: true

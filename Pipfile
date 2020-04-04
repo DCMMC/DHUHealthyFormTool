@@ -6,9 +6,19 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-apscheduler = "*"
-coloredlogs = "*"
-requests = "*"
+altgraph = "==0.17"
+apscheduler = "==3.6.3"
+certifi = "==2019.11.28"
+chardet = "==3.0.4"
+coloredlogs = "==14.0"
+humanfriendly = "==8.0"
+idna = "==2.9"
+pyinstaller = "==3.6"
+pytz = "==2019.3"
+requests = "==2.23.0"
+six = "==1.14.0"
+tzlocal = "==2.0.0"
+urllib3 = "==1.25.8"
 
 [requires]
-python_version = "3.8"
+python_version = "3.7"

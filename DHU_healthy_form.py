@@ -252,25 +252,35 @@ def submit(username, password, send_mail_instance, *args, **kwargs):
         logger.exception('Exception raised when submit the new form')
         if try_cnt >= max_try:
             logger.error('Failed submit after {} tries.'.format(try_cnt))
-            send_mail_instance and send_mail_instance(
-                mail_title='Submit failed by DHU healthy form tool',
-                mail_content=(
-                    "It's very sorry to notice you that after {} tries." +
-                    "\nYou must submit the healthy form manully!!"
-                ).format(try_cnt))
+            try:
+                send_mail_instance and send_mail_instance(
+                    mail_title='Submit failed by DHU healthy form tool',
+                    mail_content=(
+                        "It's very sorry to notice you that after {} tries." +
+                        "\nYou must submit the healthy form manully!!"
+                    ).format(try_cnt))
+            except Exception as e:
+                logger.error('error when send email! Exception:', e, exc_info=1)
             return 0
         else:
             logger.error('Continue try to submit the new form ({}/{}).'.format(
                 try_cnt, max_try))
-            send_mail_instance and send_mail_instance(
-                mail_title='Submit failed by DHU healthy form tool',
-                mail_content=
-                ("It's very sorry to notice you that after {} tries." +
-                 "\nHowever, this tool is still try to submit again with no more than {} tries."
-                 + "\nYou may need submit the healthy form manully.").format(
-                     try_cnt, max_try))
-            time.sleep(60)
-            submit(username, password, send_mail_instance, try_cnt=try_cnt)
+            try:
+                send_mail_instance and send_mail_instance(
+                    mail_title='Submit failed by DHU healthy form tool',
+                    mail_content=
+                    ("It's very sorry to notice you that after {} tries." +
+                     "\nHowever, this tool is still try to submit again with no more than {} tries."
+                     + "\nYou may need submit the healthy form manully.").format(
+                         try_cnt, max_try))
+            except Exception as e:
+                logger.error('error when send email! Exception:', e, exc_info=1)
+            time.sleep(60 + 60 * try_cnt)
+            try:
+                submit(username, password, send_mail_instance, try_cnt=try_cnt)
+            except Exception as e:
+                logger.error('error when retry to submit from last failed!',
+                             'Exception:', e, exc_info=1)
 
 
 def check_config(conf):

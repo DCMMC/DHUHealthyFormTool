@@ -135,3 +135,4 @@ user_config.json*
 DHUHealthyFormTool*
 DHU_healthy_form.log
 UPX/
+Pipfile.lock
